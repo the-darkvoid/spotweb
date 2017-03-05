@@ -24,6 +24,13 @@ define('SPOTWEB_ADMIN_USERID', 2);
 class Bootstrap {
     private $_dbSettings;
 
+    function startsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        return (substr($haystack, 0, $length) === $needle);
+    }
+
+
     /**
      * Boot up the Spotweb system
      *
@@ -39,8 +46,21 @@ class Bootstrap {
          * Set the cache path
          */
         if ($settings->exists('cache_path')) {
-            $daoFactory->setCachePath($settings->get('cache_path'));
+            $cachePath = $settings->get('cache_path');
+            if (!empty($cachePath)) {
+                if (strpos($cachePath, './') === 0 or strpos($cachePath, '.\\') === 0) {
+                    $cachePath = __DIR__.'/../'.substr($cachePath,2);
+                }
+            } 
+            else {
+                $cachePath = __DIR__.'/../cache';
+            }
+        }
+        else {
+            $cachePath = __DIR__.'/../cache';
         } # if
+
+        $daoFactory->setCachePath($cachePath);
 
 		/*
 		 * Run the validation of the most basic systems
@@ -75,6 +95,8 @@ class Bootstrap {
      * @throws DatabaseConnectionException
      * @return Dao_Base_Factory
      */
+
+
 	public function getDaoFactory() {
         SpotTiming::start(__CLASS__ . '::' . __FUNCTION__);
 
